@@ -40,6 +40,44 @@ Take a look at the GridWorld example files, especially the mapper classes, agent
 
 a Tuprolog mind also requires the perceive and decide predicates as above to be defined.
 
+# Grid World #
+
+Grid World is a simple simulation of a grid environment in which agents move around and try to find the goal tile.
+Agents cannot move onto an already filled tile (either by another agent or a wall). 
+In prolog a move action is defined as one of the following terms:
+
+* move(north)
+* move(east)
+* move(south)
+* move(west)
+
+so for example you may have the predicate
+
+decide([move(north)], Time).
+
+Which means that the agent will always decide to move northwards.
+
+Agents receive perceptions of the grid, which are the eight surrounding tiles and the tile that the agent is on.
+Each tile is represented as a term,
+
+tile(c(X,Y), O).
+
+where c(X,Y) is the coordinate of the tile and O is the object on the tile represented as one of the following:
+
+* empty
+* wall
+* agent(A) where A is the id of the agent
+* goal
+
+The a grid perception will look like the following:
+
+gridpercept([tile(c(X1,Y1), O1), tile(c(X2,Y2), O2), ... , tile(c(X9, Y9), O9)]).
+
+
+
+
+
+
 
 
 
