@@ -18,8 +18,8 @@ This name should then be given as an argument to the constructor of a SWIPrologA
 
 A prolog mind currently requires the following two predicates to be defined:
 
-perceive/2(+Perceptions, +Time). Where Perceptions is a list of perception terms and Time is an integer.
-decide/2(-Actions, +Time). Where Actions is a list of (or term) actions and time is an integer.
+* perceive/2(+Perceptions, +Time). Where Perceptions is a list of perception terms and Time is an integer.
+* decide/2(-Actions, +Time). Where Actions is a list of (or term) actions and time is an integer.
 
 //TODO talk about term mappers and more details on the modularisation of minds within the VM.
 
