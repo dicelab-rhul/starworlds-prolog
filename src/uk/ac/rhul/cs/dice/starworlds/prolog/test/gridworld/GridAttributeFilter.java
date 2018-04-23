@@ -16,6 +16,7 @@ import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Coordinat
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Grid;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Grid.Tile;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAttributeFilter.GridView;
+import uk.ac.rhul.cs.dice.starworlds.utils.StringUtils;
 
 public class GridAttributeFilter implements Filter<Grid, GridView> {
 
@@ -75,6 +76,11 @@ public class GridAttributeFilter implements Filter<Grid, GridView> {
 
 		public Coordinate getSelfCoordinate() {
 			return self;
+		}
+
+		@Override
+		public String toString() {
+			return StringUtils.mapToString(this.view);
 		}
 
 		public class EmptyAppearance implements Appearance {

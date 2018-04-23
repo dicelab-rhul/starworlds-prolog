@@ -1,11 +1,11 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.termmap;
 
-import alice.tuprolog.Term;
+import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.term.Term;
 
-public interface TermMapper<P, R> {
+public interface TermMapper<L, T extends Term<L>, P, R> {
 
-	public Term toTerm(P arg);
+	public T toTerm(P arg);
 
-	public R fromTerm(Term term);
+	public R fromTerm(T term);
 
 }

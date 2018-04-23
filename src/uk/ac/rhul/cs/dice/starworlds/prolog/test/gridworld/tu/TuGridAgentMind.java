@@ -1,11 +1,13 @@
-package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld;
+package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.tu;
 
 import java.io.IOException;
 
 import uk.ac.rhul.cs.dice.starworlds.actions.environmental.SenseAction;
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.concrete.SimpleComponentKey;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.filter.FilterChain;
-import uk.ac.rhul.cs.dice.starworlds.prolog.entities.agent.mind.PrologAgentMind;
+import uk.ac.rhul.cs.dice.starworlds.prolog.entities.agent.mind.TuPrologAgentMind;
+import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient;
+import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAttributeFilter;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Grid;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAttributeFilter.GridView;
 import alice.tuprolog.InvalidTheoryException;
@@ -13,12 +15,12 @@ import alice.tuprolog.NoMoreSolutionException;
 import alice.tuprolog.Struct;
 import alice.tuprolog.Var;
 
-public class GridAgentMind extends PrologAgentMind<SimpleComponentKey> {
+public class TuGridAgentMind extends TuPrologAgentMind<SimpleComponentKey> {
 
-	public GridAgentMind(String mindpath) throws InvalidTheoryException, IOException {
+	public TuGridAgentMind(String mindpath) throws InvalidTheoryException, IOException {
 		super(mindpath);
-		this.termFactory.addMapper(new GridActivePerceptionTermMapper());
-		this.termFactory.addMapper(new GridActionTermMapper());
+		this.termFactory.addMapper(new TuGridActivePerceptionMapper());
+		this.termFactory.addMapper(new TuGridActionMapper());
 	}
 
 	@Override
@@ -46,6 +48,5 @@ public class GridAgentMind extends PrologAgentMind<SimpleComponentKey> {
 		FilterChain<Grid, GridView> chain = FilterChain.start(GridAmbient.GRIDKEY).append(new GridAttributeFilter());
 		actions.put(SimpleComponentKey.ACTIVESENSOR, new SenseAction(chain));
 		super.execute();
-
 	}
 }

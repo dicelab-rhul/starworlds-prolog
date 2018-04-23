@@ -1,8 +1,9 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.termmap;
 
 import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.TermFactory.TermMapException;
+import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.term.Term;
 
-public abstract class AbstractTermMapper<P, R> implements TermMapper<P, R> {
+public abstract class AbstractTermMapper<L, T extends Term<L>, P, R> implements TermMapper<L, T, P, R> {
 
 	protected Class<P> cls;
 	protected String predicateName;
@@ -26,5 +27,4 @@ public abstract class AbstractTermMapper<P, R> implements TermMapper<P, R> {
 		return predicateName;
 	}
 
-	
 }

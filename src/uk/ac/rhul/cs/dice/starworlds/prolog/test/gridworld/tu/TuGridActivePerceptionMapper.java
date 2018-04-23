@@ -1,8 +1,9 @@
-package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld;
+package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.tu;
 
 import uk.ac.rhul.cs.dice.starworlds.perception.ActivePerception;
 import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.PerceptionMapper;
 import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.TermFactory.TermMapException;
+import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.term.TuTerm;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Coordinate;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Grid.Tile;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAttributeFilter.GridView;
@@ -10,25 +11,26 @@ import alice.tuprolog.Int;
 import alice.tuprolog.Struct;
 import alice.tuprolog.Term;
 
-public class GridActivePerceptionTermMapper extends PerceptionMapper<ActivePerception> {
+public class TuGridActivePerceptionMapper extends PerceptionMapper<Struct, TuTerm, ActivePerception> {
 
 	public final static String NAME = "gridpercept";
 
-	public GridActivePerceptionTermMapper() {
+	public TuGridActivePerceptionMapper() {
 		super(ActivePerception.class, NAME);
 	}
 
 	@Override
-	public Term toTerm(ActivePerception perception) {
+	public TuTerm toTerm(ActivePerception perception) {
 		GridView view = (GridView) perception.getContent();
 		Term[] percepts = view.getCoordinates().stream().map(c -> getPerceptStruct(view, c)).toArray(Term[]::new);
-		return new Struct("gridpercept", getSelfStruct(view), new Struct(percepts));
+		return new TuTerm(new Struct("gridpercept", new Struct(percepts)));
 	}
 
-	private Struct getSelfStruct(GridView view) {
-		return new Struct("tile", new Struct("c", new Int(view.self.getX()), new Int(view.self.getY())), new Struct(
-				"self"));
-	}
+	// maybe dont need this?
+	// private Struct getSelfStruct(GridView view) {
+	// return new Struct("tile", new Struct("c", new Int(view.self.getX()), new Int(view.self.getY())), new Struct(
+	// "self"));
+	// }
 
 	private Struct getPerceptStruct(GridView view, Coordinate c) {
 		return new Struct("tile", new Struct("c", new Int(c.getX()), new Int(c.getY())),
@@ -49,8 +51,8 @@ public class GridActivePerceptionTermMapper extends PerceptionMapper<ActivePerce
 	}
 
 	@Override
-	public ActivePerception fromTerm(Term term) {
-		// TODO Auto-generated method stub
+	public ActivePerception fromTerm(TuTerm term) {
+		// TODO
 		return null;
 	}
 

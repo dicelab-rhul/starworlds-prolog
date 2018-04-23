@@ -17,15 +17,29 @@ import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.Action
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.CommunicationActionDefinition;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.SenseActionDefinition;
 import uk.ac.rhul.cs.dice.starworlds.environment.subscription.SensorSubscriptionHandler;
+import uk.ac.rhul.cs.dice.starworlds.prolog.entities.agent.mind.SWIPrologAgentMind;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.MoveAction.MoveActionRuleSet;
+import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.swi.SWIGridAgentMind;
+import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.tu.TuGridAgentMind;
 import alice.tuprolog.InvalidTheoryException;
 
 public class TestGridWorld {
 
+	private static final String TUEXAMPLEMIND = "C:/Users/Ben/Work/MastersThesis/StarworldsWorkspace/starworlds-prolog/src/uk/ac/rhul/cs/dice/starworlds/prolog/test/gridworld/tu/TuPrologExampleMind.pl";
+	private static final String SWIEXAMPLEMIND = "C:/Users/Ben/Work/MastersThesis/StarworldsWorkspace/starworlds-prolog/src/uk/ac/rhul/cs/dice/starworlds/prolog/test/gridworld/swi/SWIPrologExampleMind.pl";
+	private static final boolean TU = false;
+
 	public static void main(String[] args) throws IllegalAccessException, InvalidTheoryException, IOException {
 		// create agents
 		Set<AbstractAutonomousAgent<?>> agents = new HashSet<>();
-		agents.add(getGridAgent());
+		if (TU) {
+			agents.add(getTuGridAgent(TUEXAMPLEMIND));
+		} else {
+			// do the module stuff
+			String examplemindmodule = SWIPrologAgentMind.declareMind(SWIEXAMPLEMIND);
+			agents.add(getSWIGridAgent(examplemindmodule));
+		}
+
 		// agents.add(getGridAgent());
 		// create ambient
 		GridAmbient ambient = new GridAmbient(agents, null, null, null);
@@ -65,10 +79,11 @@ public class TestGridWorld {
 		return components;
 	}
 
-	public static GridAgent getGridAgent() throws InvalidTheoryException, IOException {
-		return new GridAgent(
-				getComponents(),
-				new GridAgentMind(
-						"C:/Users/Ben/Work/MastersThesis/StarworldsWorkspace/StarWorldsTP/src/uk/ac/rhul/cs/dice/starworlds/prolog/mind/PrologExampleMind.pl"));
+	public static GridAgent getTuGridAgent(String path) throws InvalidTheoryException, IOException {
+		return new GridAgent(getComponents(), new TuGridAgentMind(path));
+	}
+
+	public static GridAgent getSWIGridAgent(String module) throws InvalidTheoryException, IOException {
+		return new GridAgent(getComponents(), new SWIGridAgentMind(module));
 	}
 }

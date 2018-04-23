@@ -1,32 +1,33 @@
-package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld;
+package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.tu;
 
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.concrete.SimpleComponentKey;
-import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.EnumKeyActionMapper;
 import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.TermFactory.TermMapException;
+import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.enummap.EnumKeyActionMapper;
+import uk.ac.rhul.cs.dice.starworlds.prolog.termmap.term.TuTerm;
+import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.MoveAction;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.MoveAction.Direction;
 import alice.tuprolog.Struct;
-import alice.tuprolog.Term;
 
-public class GridActionTermMapper extends EnumKeyActionMapper<MoveAction, SimpleComponentKey> {
+public class TuGridActionMapper extends EnumKeyActionMapper<Struct, TuTerm, MoveAction, SimpleComponentKey> {
 
 	public static final String NAME = "move";
 
-	public GridActionTermMapper() {
+	public TuGridActionMapper() {
 		super(MoveAction.class, SimpleComponentKey.class, NAME);
 	}
 
 	@Override
-	public Term toTerm(MoveAction arg) {
-		return new Struct("move", new Struct(arg.getDirection().name().toLowerCase()));
+	public TuTerm toTerm(MoveAction arg) {
+		return new TuTerm(new Struct("move", new Struct(arg.getDirection().name().toLowerCase())));
 	}
 
 	@Override
-	public ActionEntry<SimpleComponentKey, MoveAction> fromTerm(Term term) {
+	public ActionEntry<SimpleComponentKey, MoveAction> fromTerm(TuTerm term) {
 		try {
 			// SimpleComponentKey key = this.getKeymapper().fromTerm(term);
 			// Struct struct = (Struct) term;
 			// if (struct.getArity() == 1) {
-			Struct action = (Struct) term;
+			Struct action = term.getTerm();
 			if (action.getArity() == 1) {
 				Direction direction = Direction.valueOf(action.getArg(0).toString().toUpperCase());
 				return new ActionEntry<SimpleComponentKey, MoveAction>(SimpleComponentKey.ACTUATOR, new MoveAction(
