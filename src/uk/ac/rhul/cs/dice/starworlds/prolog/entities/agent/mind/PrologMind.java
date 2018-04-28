@@ -1,10 +1,10 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.entities.agent.mind;
 
+import uk.ac.rhul.cs.dice.starworlds.actions.environmental.EnvironmentalAction;
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.AbstractMind;
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.ComponentKey;
 import uk.ac.rhul.cs.dice.starworlds.exceptions.StarWorldsRuntimeException;
-import uk.ac.rhul.cs.dice.starworlds.prolog.actions.PrologEnvironmentalAction;
-import uk.ac.rhul.cs.dice.starworlds.prolog.perception.PrologPerception;
+import uk.ac.rhul.cs.dice.starworlds.perception.Perception;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.TermFactory;
 
 public abstract class PrologMind<T, K extends ComponentKey> extends AbstractMind<K> {
@@ -14,7 +14,7 @@ public abstract class PrologMind<T, K extends ComponentKey> extends AbstractMind
 		this.factory = factory;
 	}
 
-	public T toTerm(PrologPerception perception) {
+	public T toTerm(Perception perception) {
 		try {
 			return factory.toTerm(perception);
 		} catch (Exception e) {
@@ -22,7 +22,7 @@ public abstract class PrologMind<T, K extends ComponentKey> extends AbstractMind
 		}
 	}
 
-	public T toTerm(PrologEnvironmentalAction action) {
+	public T toTerm(EnvironmentalAction action) {
 		try {
 			return factory.toTerm(action);
 		} catch (Exception e) {

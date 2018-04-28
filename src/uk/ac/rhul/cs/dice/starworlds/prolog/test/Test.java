@@ -8,7 +8,7 @@ import org.jpl7.Compound;
 import org.jpl7.Term;
 import org.jpl7.Util;
 
-import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWIGeneralTermFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.GlobalTermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWITermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils;
@@ -16,7 +16,7 @@ import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils.TermCollector;
 
 public class Test {
 
-	private static SWIGeneralTermFactory factory;
+	private static GlobalTermFactory factory;
 
 	static {
 		// SWIGeneralTermFactory.initialise();
@@ -32,7 +32,7 @@ public class Test {
 		terms.add(new Atom("b"));
 		terms.add(new Atom("c"));
 		Term term = SWIUtils.toList(terms);
-		List<Term> eterms = SWIUtils.visitList(term, new TermCollector());
+		List<Term> eterms = SWIUtils.visitList(term, new TermCollector<ArrayList<Term>>(new ArrayList<>()));
 		System.out.println(eterms);
 	}
 
@@ -42,7 +42,7 @@ public class Test {
 		}
 	}
 
-	@Termable(name = Test1.TERMNAME, factory = Test1Factory.class)
+	// @Termable(name = Test1.TERMNAME, factory = Test1Factory.class)
 	public static class Test1 {
 
 		public static final String TERMNAME = "test";
@@ -81,7 +81,7 @@ public class Test {
 
 	}
 
-	@Termable(name = "test")
+	// @Termable(name = "test")
 	public static class Test2 {
 		@Termable
 		private String message = "hello";
@@ -112,7 +112,7 @@ public class Test {
 		System.out.println(factory.toTerm(obj));
 	}
 
-	@Termable
+	// @Termable
 	private enum E {
 		A, B, C;
 	}

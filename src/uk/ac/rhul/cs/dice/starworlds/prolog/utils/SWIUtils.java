@@ -1,6 +1,6 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.utils;
 
-import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 import org.jpl7.Atom;
@@ -47,18 +47,41 @@ public class SWIUtils {
 		return v;
 	}
 
-	public static class TermCollector implements TermVisitor<List<Term>> {
+	public static class StringCollector<A extends Collection<String>> implements TermVisitor<A> {
+		private A terms;
 
-		private List<Term> terms = new ArrayList<>();
+		public StringCollector(A collection) {
+			terms = collection;
+		}
 
 		@Override
-		public List<Term> visit(Term term) {
+		public A visit(Term term) {
+			terms.add(term.toString());
+			return terms;
+		}
+
+		@Override
+		public A visit(Term term, A prev) {
+			terms.add(term.toString());
+			return terms;
+		}
+	}
+
+	public static class TermCollector<A extends Collection<Term>> implements TermVisitor<A> {
+		private A terms;
+
+		public TermCollector(A collection) {
+			terms = collection;
+		}
+
+		@Override
+		public A visit(Term term) {
 			terms.add(term);
 			return terms;
 		}
 
 		@Override
-		public List<Term> visit(Term term, List<Term> prev) {
+		public A visit(Term term, A prev) {
 			terms.add(term);
 			return terms;
 		}

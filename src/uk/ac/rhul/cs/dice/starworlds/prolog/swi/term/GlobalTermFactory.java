@@ -20,9 +20,9 @@ import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.ReflectionUtils;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils;
 
-public class SWIGeneralTermFactory implements TermFactory<Term> {
+public class GlobalTermFactory implements SWITermFactory {
 
-	private static SWIGeneralTermFactory INSTANCE;
+	private static GlobalTermFactory INSTANCE;
 
 	private Map<String, SWITermFactory> termFactories;
 	private Map<Class<?>, SWITermFactory> objectFactories;
@@ -31,22 +31,23 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 
 	private NameResolver nameResolver;
 
-	public static void initialise() {
+	public static GlobalTermFactory initialise() {
 		if (INSTANCE == null) {
 			try {
-				INSTANCE = new SWIGeneralTermFactory();
+				INSTANCE = new GlobalTermFactory();
 			} catch (ClassNotFoundException e) {
-				throw new StarWorldsRuntimeException("Failed to initialise: " + SWIGeneralTermFactory.class, e);
+				throw new StarWorldsRuntimeException("Failed to initialise: " + GlobalTermFactory.class, e);
 			}
 		}
+		return INSTANCE;
 	}
 
-	public static SWIGeneralTermFactory getInstance() {
+	public static GlobalTermFactory getInstance() {
 		return INSTANCE;
 	}
 
 	// initialise
-	private SWIGeneralTermFactory() throws ClassNotFoundException {
+	private GlobalTermFactory() throws ClassNotFoundException {
 		termFactories = new HashMap<>();
 		objectFactories = new HashMap<>();
 		nameResolver = new NameResolver();
@@ -88,7 +89,7 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 			Termable termable = cls.getAnnotation(Termable.class);
 			String name = nameResolver.addName(cls, termable);
 			SWITermFactory factory;
-			if (!declaredFactory(cls, name, termable.factory())) {
+			if (!declareFactory(cls, name, termable.factory())) {
 				if (!cls.isEnum()) {
 					List<Field> fields = ReflectionUtils.getFieldWithAnnotation(cls, Termable.class);
 					fields.forEach(f -> f.setAccessible(true));
@@ -98,7 +99,7 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 				}
 				termFactories.put(name, factory);
 				objectFactories.put(cls, factory);
-				System.out.println("initialising termable: " + cls + "->" + name + " : " + factory);
+				declaredFactoryInfo(cls, name, factory.getClass());
 			}
 
 		} else {
@@ -110,21 +111,45 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 		}
 	}
 
-	public boolean declaredFactory(Class<?> cls, String name, Class<?> factorycls) {
-		if (SWITermFactory.class.isAssignableFrom(factorycls)) {
+	public void declareFactory(Class<?> cls, SWITermFactory factory) {
+		declareFactory(cls, cls.getSimpleName(), factory);
+	}
+
+	public void declareFactory(Class<?> cls, String name, SWITermFactory factory) {
+		if (objectFactories.containsKey(cls)) {
+			factoryAlreadyExistsWarning(cls, factory);
+		} else {
+			name = nameResolver.addName(cls, name);
+		}
+		termFactories.put(name, factory);
+		objectFactories.put(cls, factory);
+		declaredFactoryInfo(cls, name, factory.getClass());
+	}
+
+	private void factoryAlreadyExistsWarning(Class<?> cls, SWITermFactory factory) {
+		System.out.println("Warning: Overwritting factory: " + objectFactories.get(cls) + ", for class: " + cls
+				+ ", with: " + factory);
+	}
+
+	protected boolean declareFactory(Class<?> cls, String name, Class<?> fcls) {
+		if (SWITermFactory.class.isAssignableFrom(fcls)) {
 			SWITermFactory factory;
 			try {
-				factory = (SWITermFactory) factorycls.newInstance();
+				factory = (SWITermFactory) fcls.newInstance();
 				termFactories.put(name, factory);
 				objectFactories.put(cls, factory);
 			} catch (InstantiationException | IllegalAccessException e) {
 				throw new PrologTermException("Failed to instantiate custom " + SWITermFactory.class.getName() + " - "
-						+ factorycls + " must delcare a public empty constructor", e);
+						+ fcls + " must delcare a public empty constructor", e);
 			}
-			System.out.println("custom initialising termable: " + factorycls + "->" + name + " : " + factory);
+			declaredFactoryInfo(cls, name, fcls);
 			return true;
 		}
 		return false;
+	}
+
+	private void declaredFactoryInfo(Class<?> cls, String name, Class<?> fcls) {
+		System.out.println("declared factory: " + cls + "->" + name + " : " + fcls.getSimpleName());
 	}
 
 	@Override
@@ -172,6 +197,18 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 		// public Class<?> getObjectClass(String name) {
 		// return termNames.get(name);
 		// }
+
+		public String addName(Class<?> cls, String name) {
+			name = name.toLowerCase();
+			if (!termNames.containsKey(name)) {
+				termNames.put(name, cls);
+				objectNames.put(cls, name);
+				return name;
+			} else {
+				warning(cls, name, 1);
+				return addName(cls, name, 1);
+			}
+		}
 
 		public String addName(Class<?> cls, Termable termable) {
 			String name = "".equals(termable.name()) ? cls.getSimpleName() : termable.name();
@@ -298,7 +335,7 @@ public class SWIGeneralTermFactory implements TermFactory<Term> {
 						if (!"null".equals(terms[i].toString())) {
 							if (!fields[i].getType().isArray()) {
 								// System.out.println(fields[i].getType() + " : " + terms[i]);
-								Object r = SWIGeneralTermFactory.this.fromTerm(terms[i]);
+								Object r = GlobalTermFactory.this.fromTerm(terms[i]);
 								// Object r = objectFactories.get(fields[i].getType()).fromTerm(terms[i]);
 								fields[i].set(o, r);
 							} else {

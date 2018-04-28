@@ -9,13 +9,13 @@ import java.util.Set;
 
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.AbstractAgent;
 import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.AbstractComponent;
+import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.concrete.GeneralActiveSensor;
+import uk.ac.rhul.cs.dice.starworlds.entities.agent.components.concrete.GeneralPassiveSensor;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.ActionDefinition;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.CommunicationActionDefinition;
 import uk.ac.rhul.cs.dice.starworlds.environment.physics.actiondefinition.SenseActionDefinition;
 import uk.ac.rhul.cs.dice.starworlds.environment.subscription.SensorSubscriptionHandler;
 import uk.ac.rhul.cs.dice.starworlds.exceptions.StarWorldsException;
-import uk.ac.rhul.cs.dice.starworlds.prolog.components.PrologActiveSensor;
-import uk.ac.rhul.cs.dice.starworlds.prolog.components.PrologPassiveSensor;
 import uk.ac.rhul.cs.dice.starworlds.prolog.components.key.SimpleSWIComponentKey;
 import uk.ac.rhul.cs.dice.starworlds.prolog.swi.agent.SWIMind;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridPerception.GridPerceptionFactory;
@@ -77,8 +77,8 @@ public class TestGridWorld {
 
 	public static Collection<AbstractComponent<SimpleSWIComponentKey>> getSWIComponents() {
 		List<AbstractComponent<SimpleSWIComponentKey>> components = new ArrayList<>();
-		components.add(new PrologPassiveSensor<SimpleSWIComponentKey>(SimpleSWIComponentKey.PASSIVESENSOR));
-		components.add(new PrologActiveSensor<SimpleSWIComponentKey>(SimpleSWIComponentKey.ACTIVESENSOR));
+		components.add(new GeneralPassiveSensor<SimpleSWIComponentKey>(SimpleSWIComponentKey.PASSIVESENSOR));
+		components.add(new GeneralActiveSensor<SimpleSWIComponentKey>(SimpleSWIComponentKey.ACTIVESENSOR));
 		components.add(new GridActuator());
 		return components;
 	}

@@ -31,6 +31,7 @@ public class GridUniverse extends AbstractEnvironment<GridUniverse> implements U
 
 	@Override
 	public void simulate() {
+		System.out.println("------- SIMULATING GRID WORLD -------");
 		this.physics.simulate();
 	}
 

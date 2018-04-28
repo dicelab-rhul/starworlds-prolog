@@ -3,12 +3,11 @@ package uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld;
 import uk.ac.rhul.cs.dice.starworlds.appearances.Appearance;
 import uk.ac.rhul.cs.dice.starworlds.perception.ActivePerception;
 import uk.ac.rhul.cs.dice.starworlds.perception.factory.PerceptionFactory;
-import uk.ac.rhul.cs.dice.starworlds.prolog.perception.PrologPerception;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Tile;
 
 @Termable(name = GridPerception.TERMNAME)
-public class GridPerception extends ActivePerception implements PrologPerception {
+public class GridPerception extends ActivePerception {
 
 	public static final String TERMNAME = "gridpercept";
 
