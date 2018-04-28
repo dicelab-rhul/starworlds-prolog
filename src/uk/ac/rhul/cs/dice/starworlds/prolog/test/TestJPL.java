@@ -6,7 +6,7 @@ import org.jpl7.Atom;
 import org.jpl7.Query;
 import org.jpl7.Term;
 
-import uk.ac.rhul.cs.dice.starworlds.prolog.entities.agent.mind.SWIPrologAgentMind;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.agent.SWIMind;
 
 public class TestJPL {
 
@@ -21,7 +21,7 @@ public class TestJPL {
 	public static void main(String[] args) {
 		Query load = new Query("consult", new Atom(MODULEMANAGERFILE));
 		load.allSolutions();
-		String mindModule1 = SWIPrologAgentMind.declareMind(TESTFILE1);
+		String mindModule1 = SWIMind.declareMind(TESTFILE1);
 		String mind1 = newMind(mindModule1);
 
 		Query query = new Query(new StringBuilder(mind1).append(":perceive(").append("P").append(",1)").toString());
