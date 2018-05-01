@@ -1,6 +1,7 @@
 :- module(mind1, [perceive/2, decide/2]).
+:- op(700, xfx, ~>).
 
-perceive([mind1yay], Time).
+perceive([test()], Time).
 decide(Actions, Time).
 
 

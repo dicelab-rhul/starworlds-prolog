@@ -1,10 +1,11 @@
-package uk.ac.rhul.cs.dice.starworlds.prolog.swi.term;
+package uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.perception;
 
 import org.jpl7.Atom;
 import org.jpl7.Compound;
 import org.jpl7.Term;
 
 import uk.ac.rhul.cs.dice.starworlds.perception.CommunicationPerception;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWITermFactory;
 
 /**
  * The default {@link SWITermFactory} for {@link CommunicationPerception}s. <br>
@@ -15,19 +16,34 @@ import uk.ac.rhul.cs.dice.starworlds.perception.CommunicationPerception;
  * @author Ben Wilkins
  *
  */
-public class CommunicationPerceptionTermFactory implements SWITermFactory {
+public class CommunicationPerceptionTermFactory extends SWITermFactory {
 
 	public static final String COMMUNICATIONPERCEPTIONTERMNAME = "received";
 
 	@Override
-	public Term toTerm(Object arg) throws Exception {
+	public Term toTerm(Object arg) {
 		CommunicationPerception perception = (CommunicationPerception) arg;
 		return new Compound(COMMUNICATIONPERCEPTIONTERMNAME, new Term[] { new Atom(perception.getSender()),
 				new Atom(perception.getMessage().toString()) });
 	}
 
 	@Override
-	public Object fromTerm(Term term) throws Exception {
+	public Object fromTerm(Term term) {
 		return new CommunicationPerception(term.arg(1).toString(), term.arg(2).toString());
+	}
+
+	@Override
+	public Term toTerm(Object arg, Class<?>[] typeinfo) {
+		return toTerm(arg);
+	}
+
+	@Override
+	public Object fromTerm(Term term, Class<?>[] typeinfo) {
+		return fromTerm(term);
+	}
+
+	@Override
+	public Class<?> getObjectClass() {
+		return CommunicationPerception.class;
 	}
 }

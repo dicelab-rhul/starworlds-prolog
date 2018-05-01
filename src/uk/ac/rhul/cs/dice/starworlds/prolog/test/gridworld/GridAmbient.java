@@ -20,12 +20,12 @@ import uk.ac.rhul.cs.dice.starworlds.entities.avatar.AbstractAvatarAgent;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.AbstractAmbient;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.attribute.Attribute;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.attribute.key.AttributeKey;
-import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWITermFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SimpleSWITermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 
 public class GridAmbient extends AbstractAmbient {
 
-	public static final AttributeKey<GridAmbient.Grid> GRIDKEY = new AttributeKey<GridAmbient.Grid>(
+	public static final AttributeKey<GridAmbient.Grid> GRIDKEY = new @Termable(name = "grid") AttributeKey<GridAmbient.Grid>(
 			GridAmbient.Grid.class) {
 	};
 
@@ -256,11 +256,12 @@ public class GridAmbient extends AbstractAmbient {
 		}
 	}
 
-	public static class TileTermFactory implements SWITermFactory {
+	public static class TileTermFactory extends SimpleSWITermFactory {
+
 		CoordinateTermFactory coordinateFactory = new CoordinateTermFactory();
 
 		@Override
-		public Term toTerm(Object arg) throws Exception {
+		public Term toTerm(Object arg) {
 			Tile tile = (Tile) arg;
 			Term contains = null;
 			if (tile.isEmpty()) {
@@ -276,8 +277,13 @@ public class GridAmbient extends AbstractAmbient {
 		}
 
 		@Override
-		public Object fromTerm(Term term) throws Exception {
+		public Object fromTerm(Term term) {
 			throw new UnsupportedOperationException("No support for converting term: " + term + " to object");
+		}
+
+		@Override
+		public Class<?> getObjectClass() {
+			return Tile.class;
 		}
 	}
 
@@ -340,20 +346,25 @@ public class GridAmbient extends AbstractAmbient {
 		}
 	}
 
-	public static class CoordinateTermFactory implements SWITermFactory {
+	public static class CoordinateTermFactory extends SimpleSWITermFactory {
 		public CoordinateTermFactory() {
 		}
 
 		@Override
-		public Term toTerm(Object arg) throws Exception {
+		public Term toTerm(Object arg) {
 			Coordinate c = (Coordinate) arg;
 			return new Compound(Coordinate.TERMNAME, new Term[] { new org.jpl7.Integer(c.getX()),
 					new org.jpl7.Integer(c.getY()) });
 		}
 
 		@Override
-		public Object fromTerm(Term term) throws Exception {
+		public Object fromTerm(Term term) {
 			return new Coordinate(term.arg(1).intValue(), term.arg(2).intValue());
+		}
+
+		@Override
+		public Class<?> getObjectClass() {
+			return Coordinate.class;
 		}
 	}
 }

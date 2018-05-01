@@ -2,11 +2,16 @@ package uk.ac.rhul.cs.dice.starworlds.prolog.swi.term;
 
 import io.github.lukehutch.fastclasspathscanner.scanner.ScanResult;
 
-import java.lang.reflect.Array;
 import java.lang.reflect.Field;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.jpl7.Atom;
 import org.jpl7.Compound;
@@ -15,42 +20,62 @@ import org.jpl7.Term;
 import uk.ac.rhul.cs.dice.starworlds.annotations.Discovery;
 import uk.ac.rhul.cs.dice.starworlds.exceptions.StarWorldsRuntimeException;
 import uk.ac.rhul.cs.dice.starworlds.prolog.exceptions.PrologTermException;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.collection.concrete.ArrayListFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.collection.concrete.HashSetFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.collection.concrete.LinkedHashSetFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.collection.concrete.LinkedListFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.ArrayFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.CharacterFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.DoubleFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.EmptyArrayFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.EnumFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.FloatFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.IntegerFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.LongFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.NullFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.primitive.StringFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.TermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.ReflectionUtils;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils;
 
-public class GlobalTermFactory implements SWITermFactory {
+public class GlobalTermFactory implements TermFactory<Term> {
 
-	private static GlobalTermFactory INSTANCE;
+	private static final GlobalTermFactory INSTANCE;
+	static {
+		try {
+			// System.out.println("Initialising global term factory");
+			INSTANCE = new GlobalTermFactory();
+			INSTANCE.initialiseFactories();
+		} catch (ClassNotFoundException e) {
+			throw new StarWorldsRuntimeException("Failed to initialise: " + GlobalTermFactory.class, e);
+		}
+	}
 
-	private Map<String, SWITermFactory> termFactories;
-	private Map<Class<?>, SWITermFactory> objectFactories;
-
-	private ListFactory listFactory = new ListFactory();
+	private Map<String, TermFactory<Term>> termFactories;
+	private Map<Class<?>, TermFactory<Term>> objectFactories;
+	private ScanResult scan;
 
 	private NameResolver nameResolver;
-
-	public static GlobalTermFactory initialise() {
-		if (INSTANCE == null) {
-			try {
-				INSTANCE = new GlobalTermFactory();
-			} catch (ClassNotFoundException e) {
-				throw new StarWorldsRuntimeException("Failed to initialise: " + GlobalTermFactory.class, e);
-			}
-		}
-		return INSTANCE;
-	}
 
 	public static GlobalTermFactory getInstance() {
 		return INSTANCE;
 	}
 
-	// initialise
-	private GlobalTermFactory() throws ClassNotFoundException {
+	private GlobalTermFactory() {
+		if (Discovery.scanned()) {
+			scan = Discovery.scan();
+		} else {
+			scan = Discovery.newScan(new String[] {});
+		}
+		// System.out.println(StringUtils.mapToString(objectFactories));
+	}
+
+	private void initialiseFactories() throws ClassNotFoundException {
 		termFactories = new HashMap<>();
 		objectFactories = new HashMap<>();
 		nameResolver = new NameResolver();
+
 		// primitiveFactories = new HashMap<>();
 		IntegerFactory intFactory = new IntegerFactory();
 		objectFactories.put(Integer.class, intFactory);
@@ -62,33 +87,43 @@ public class GlobalTermFactory implements SWITermFactory {
 
 		objectFactories.put(Double.class, new DoubleFactory());
 		objectFactories.put(Long.class, new LongFactory());
-		objectFactories.put(Character.class, new CharFactory());
+		objectFactories.put(Character.class, new CharacterFactory());
 
 		StringFactory stringFactory = new StringFactory();
 		objectFactories.put(String.class, stringFactory);
 		objectFactories.put(Atom.class, stringFactory);
 
-		termFactories.put(SWIUtils.ARRAYDELIM, new ListFactory());
+		// Collection factories
+		objectFactories.put(Object[].class, new ArrayFactory());
 
-		// possible add support for other types like byte etc
+		objectFactories.put(Collection.class, new ArrayListFactory());
+		objectFactories.put(List.class, new ArrayListFactory());
+		objectFactories.put(ArrayList.class, new ArrayListFactory());
+		objectFactories.put(LinkedList.class, new LinkedListFactory());
 
-		ScanResult result;
-		if (Discovery.scanned()) {
-			result = Discovery.scan();
-		} else {
-			result = Discovery.newScan(new String[] {});
-		}
-		List<String> classes = result.getNamesOfClassesWithAnnotation(Termable.class);
+		objectFactories.put(Set.class, new HashSetFactory());
+		objectFactories.put(HashSet.class, new HashSetFactory());
+		objectFactories.put(LinkedHashSet.class, new LinkedHashSetFactory());
+
+		termFactories.put(NullFactory.NULL, new NullFactory());
+		termFactories.put(SWIUtils.ARRAYDELIM, new ArrayFactory());
+		termFactories.put(SWIUtils.EMPTYARRAY, new EmptyArrayFactory());
+
+		List<String> classes = scan.getNamesOfClassesWithAnnotation(Termable.class);
 		for (String c : classes) {
 			initialiseClass(Class.forName(c));
 		}
+	}
+
+	public ScanResult getScanResult() {
+		return scan;
 	}
 
 	private void initialiseClass(Class<?> cls) {
 		if (!cls.isAnonymousClass()) {
 			Termable termable = cls.getAnnotation(Termable.class);
 			String name = nameResolver.addName(cls, termable);
-			SWITermFactory factory;
+			TermFactory<Term> factory;
 			if (!declareFactory(cls, name, termable.factory())) {
 				if (!cls.isEnum()) {
 					List<Field> fields = ReflectionUtils.getFieldWithAnnotation(cls, Termable.class);
@@ -115,7 +150,7 @@ public class GlobalTermFactory implements SWITermFactory {
 		declareFactory(cls, cls.getSimpleName(), factory);
 	}
 
-	public void declareFactory(Class<?> cls, String name, SWITermFactory factory) {
+	public void declareFactory(Class<?> cls, String name, TermFactory<Term> factory) {
 		if (objectFactories.containsKey(cls)) {
 			factoryAlreadyExistsWarning(cls, factory);
 		} else {
@@ -126,7 +161,7 @@ public class GlobalTermFactory implements SWITermFactory {
 		declaredFactoryInfo(cls, name, factory.getClass());
 	}
 
-	private void factoryAlreadyExistsWarning(Class<?> cls, SWITermFactory factory) {
+	private void factoryAlreadyExistsWarning(Class<?> cls, TermFactory<Term> factory) {
 		System.out.println("Warning: Overwritting factory: " + objectFactories.get(cls) + ", for class: " + cls
 				+ ", with: " + factory);
 	}
@@ -152,34 +187,52 @@ public class GlobalTermFactory implements SWITermFactory {
 		System.out.println("declared factory: " + cls + "->" + name + " : " + fcls.getSimpleName());
 	}
 
-	@Override
-	public Term toTerm(Object arg) throws Exception {
-		if (!arg.getClass().isArray()) {
-			return this.objectFactories.get(arg.getClass()).toTerm(arg);
-		} else {
-			return this.listFactory.toTerm(arg);
-		}
-
+	public synchronized Term toTerm(Object arg) {
+		return getFactory(arg.getClass()).toTerm(arg);
 	}
 
-	@Override
-	public Object fromTerm(Term term) throws Exception {
-		if (term instanceof Compound) {
-			return fromCompoundTerm(term);
-		} else {
-			if (emptyList(term)) {
-				return new Object[0];
-			}
-			return objectFactories.get(term.getClass()).fromTerm(term);
-		}
+	public synchronized Object fromTerm(Term term) {
+		return getFactory(term).fromTerm(term);
 	}
 
-	private Object fromCompoundTerm(Term term) throws Exception {
-		SWITermFactory factory = termFactories.get(term.name());
+	public TermFactory<Term> getFactory(Class<?> cls) {
+		TermFactory<Term> factory = this.objectFactories.get(cls);
 		if (factory != null) {
-			return factory.fromTerm(term);
+			return factory;
+		} else {
+			throw new PrologTermException("No TermFactory exists for objects of type: " + cls);
 		}
-		throw new PrologTermException("Failed to convert term: " + term + " term name is invalid");
+	}
+
+	public TermFactory<Term> getFactory(String name) {
+		TermFactory<Term> factory = termFactories.get(name);
+		if (factory != null) {
+			return factory;
+		} else {
+			throw new PrologTermException("No TermFactory exists for term with name: " + name);
+		}
+	}
+
+	public TermFactory<Term> getFactory(Term term) {
+		TermFactory<Term> factory;
+		if (term instanceof Compound) {
+			factory = termFactories.get(term.name());
+		} else {
+			factory = objectFactories.get(term.getClass());
+		}
+		if (factory != null) {
+			return factory;
+		} else {
+			throw new PrologTermException("No TermFactory exists for term: " + term);
+		}
+	}
+
+	public String resolveName(Class<?> cls) {
+		return nameResolver.getTermName(cls);
+	}
+
+	public Class<?> resolveClass(Term term) {
+		return nameResolver.getObjectClass(term);
 	}
 
 	private Class<?> getEnclosing(Class<?> cls) {
@@ -194,9 +247,9 @@ public class GlobalTermFactory implements SWITermFactory {
 			return objectNames.get(cls);
 		}
 
-		// public Class<?> getObjectClass(String name) {
-		// return termNames.get(name);
-		// }
+		public Class<?> getObjectClass(Term term) {
+			return termNames.get(term.name());
+		}
 
 		public String addName(Class<?> cls, String name) {
 			name = name.toLowerCase();
@@ -241,56 +294,11 @@ public class GlobalTermFactory implements SWITermFactory {
 		}
 	}
 
-	private class ListFactory implements SWITermFactory {
+	// *********************** ******************** *********************** //
+	// ************************* OBJECT FACTORIES ************************* //
+	// *********************** ******************** *********************** //
 
-		@Override
-		public Term toTerm(Object arg) throws Exception {
-			Object[] array = (Object[]) arg;
-			Term list = new Atom("[]");
-			for (int i = array.length - 1; i >= 0; --i) {
-				list = new Compound(SWIUtils.ARRAYDELIM, new Term[] {
-						objectFactories.get(array[i].getClass()).toTerm(array[i]), list });
-			}
-			return list;
-		}
-
-		@Override
-		public Object fromTerm(Term term) throws Exception {
-			Term firstTerm = term.arg(1);
-			TermFactory<Term> factory;
-			if (firstTerm instanceof Compound) {
-				// System.out.println(firstTerm);
-				factory = termFactories.get(firstTerm.name());
-			} else {
-				factory = objectFactories.get(firstTerm.getClass());
-			}
-			Object o1 = factory.fromTerm(term.arg(1));
-			Object[] objects = (Object[]) Array.newInstance(o1.getClass(), getListLength(term));
-			objects[0] = o1;
-			Integer i = 1;
-			if (!term.arg(2).name().equals("[]")) {
-				term = term.arg(2);
-				do {
-					// System.out.println(term);
-					objects[i] = factory.fromTerm(term.arg(1));
-					i++;
-					term = term.arg(2);
-				} while (!term.name().equals("[]"));
-			}
-			return objects;
-		}
-
-		private Integer getListLength(Term list) {
-			Integer i = 1;
-			while (!list.arg(2).name().equals("[]")) {
-				i++;
-				list = list.arg(2);
-			}
-			return i;
-		}
-	}
-
-	private class ObjectFactory implements SWITermFactory {
+	public class ObjectFactory extends SWITermFactory {
 
 		private Class<?> cls;
 		private Field[] fields;
@@ -302,52 +310,58 @@ public class GlobalTermFactory implements SWITermFactory {
 		}
 
 		@Override
-		public Term toTerm(Object arg) throws Exception {
+		public Term toTerm(Object arg) {
 			Term[] terms = new Term[fields.length];
 			for (int i = 0; i < fields.length; i++) {
-				Object v = fields[i].get(arg);
+				Object v = null;
+				try {
+					v = fields[i].get(arg);
+				} catch (IllegalArgumentException | IllegalAccessException e) {
+					throw new PrologTermException("Failed to get value of field: " + fields[i] + " from object: " + arg
+							+ " when converting to term", e);
+				}
 				if (v != null) {
 					Class<?> c = getEnclosing(v.getClass());
-					// System.out.println(c);
 					if (!c.isArray()) {
-						terms[i] = objectFactories.get(c).toTerm(v);
+						System.out.println(fields[i]);
+						terms[i] = objectFactories.get(c).toTerm(v, ReflectionUtils.getGenericTypes(fields[i]));
 					} else {
-						terms[i] = listFactory.toTerm(v);
+						terms[i] = fromArray((Object[]) v);
 					}
 				} else {
-					terms[i] = new Atom("null");
+					terms[i] = termFactories.get(NullFactory.NULL).toTerm(null);
 				}
 			}
 			// System.out.println(Arrays.toString(terms));
 			return new Compound(nameResolver.getTermName(arg.getClass()), terms);
 		}
 
+		private Term fromArray(Object[] obj) {
+			Class<?>[] typeinfo = { obj.getClass().getComponentType() };
+			if (obj.length > 0) {
+				return termFactories.get(SWIUtils.ARRAYDELIM).toTerm(obj, typeinfo);
+			} else {
+				return termFactories.get(SWIUtils.EMPTYARRAY).toTerm(obj, typeinfo);
+			}
+		}
+
 		@Override
-		public Object fromTerm(Term term) throws Exception {
+		public Object fromTerm(Term term) {
 			// System.out.println(term);
 			Term[] terms = term.args();
 			if (fields.length == terms.length) {
 				try {
 					Object o = cls.newInstance();
 					for (int i = 0; i < terms.length; i++) {
-						// System.out.println(fields[i].getType());
-						// System.out.println(terms[i] + "    " + fields[i].getType());
-						if (!"null".equals(terms[i].toString())) {
-							if (!fields[i].getType().isArray()) {
-								// System.out.println(fields[i].getType() + " : " + terms[i]);
-								Object r = GlobalTermFactory.this.fromTerm(terms[i]);
-								// Object r = objectFactories.get(fields[i].getType()).fromTerm(terms[i]);
-								fields[i].set(o, r);
-							} else {
-								if (!term.name().equals("[]")) {
-									listFactory.fromTerm(terms[i]);
-								} else {
-									fields[i].set(o, Array.newInstance(fields[i].getType(), 0));
-								}
-							}
+						Object r;
+						if (Collection.class.isAssignableFrom(fields[i].getType())) {
+							r = objectFactories.get(fields[i].getType()).fromTerm(terms[i],
+									ReflectionUtils.getGenericTypes(fields[i]));
 						} else {
-							fields[i].set(o, null);
+							r = GlobalTermFactory.this.fromTerm(terms[i]);
+							fields[i].set(o, r);
 						}
+						fields[i].set(o, r);
 					}
 					return o;
 				} catch (InstantiationException e) {
@@ -361,114 +375,38 @@ public class GlobalTermFactory implements SWITermFactory {
 				throw new PrologTermException("Invalid term: " + term + " for construction of object of type: " + cls);
 			}
 		}
-	}
 
-	private class EnumFactory implements SWITermFactory {
-
-		private Class<?> cls;
-
-		public EnumFactory(Class<?> cls) {
-			this.cls = cls;
+		@Override
+		public Class<?> getObjectClass() {
+			return Object.class;
 		}
 
 		@Override
-		public Term toTerm(Object arg) throws Exception {
-			return new Compound(nameResolver.getTermName(cls), new Term[] { new Atom(arg.toString().toLowerCase()) });
+		public Term toTerm(Object arg, Class<?>[] typeinfo) {
+			throw new UnsupportedOperationException("TODO");
 		}
 
 		@Override
-		public Object fromTerm(Term term) throws Exception {
-			Enum<?>[] enums = (Enum<?>[]) this.cls.getEnumConstants();
-			String name = term.arg(1).name().toUpperCase();
-			for (int i = 0; i < enums.length; i++) {
-				if (name.equals(enums[i].toString())) {
-					return enums[i];
-				}
-			}
-			throw new PrologTermException("Failed to construct Enum object from term: " + term);
+		public Object fromTerm(Term term, Class<?>[] typeinfo) {
+			throw new UnsupportedOperationException("TODO");
 		}
 	}
 
-	private class FloatFactory implements SWITermFactory {
-
-		@Override
-		public Term toTerm(Object arg) {
-			return new org.jpl7.Float((float) arg);
-		}
-
-		@Override
-		public Float fromTerm(Term term) {
-			return term.floatValue();
-		}
+	@Override
+	public Term toTerm(Object arg, Class<?>[] typeinfo) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	private class DoubleFactory implements SWITermFactory {
-
-		@Override
-		public Term toTerm(Object arg) {
-			return new org.jpl7.Float((double) arg);
-		}
-
-		@Override
-		public Double fromTerm(Term term) {
-			return term.doubleValue();
-		}
+	@Override
+	public Object fromTerm(Term term, Class<?>[] typeinfo) {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
-	private class IntegerFactory implements SWITermFactory {
-
-		@Override
-		public Term toTerm(Object arg) {
-			return new org.jpl7.Integer((Integer) arg);
-		}
-
-		@Override
-		public Integer fromTerm(Term term) {
-			return term.intValue();
-		}
+	@Override
+	public Class<?> getObjectClass() {
+		// TODO Auto-generated method stub
+		return null;
 	}
-
-	private class LongFactory implements SWITermFactory {
-
-		@Override
-		public Term toTerm(Object arg) {
-			return new org.jpl7.Integer((Long) arg);
-		}
-
-		@Override
-		public Long fromTerm(Term term) {
-			return term.longValue();
-		}
-	}
-
-	private class CharFactory implements SWITermFactory {
-		@Override
-		public Term toTerm(Object arg) {
-			return new Atom(String.valueOf((Character) arg));
-		}
-
-		@Override
-		public Integer fromTerm(Term term) {
-			return term.intValue();
-		}
-	}
-
-	private class StringFactory implements SWITermFactory {
-
-		@Override
-		public Term toTerm(Object arg) {
-			// System.out.println(arg);
-			return new Atom((String) arg);
-		}
-
-		@Override
-		public String fromTerm(Term term) {
-			return term.name();
-		}
-	}
-
-	public boolean emptyList(Term term) {
-		return term instanceof Atom && "[]".equals(term.name());
-	}
-
 }

@@ -1,8 +1,7 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.test;
 
-import java.util.Arrays;
-
 import org.jpl7.Atom;
+import org.jpl7.Compound;
 import org.jpl7.Query;
 import org.jpl7.Term;
 
@@ -25,7 +24,9 @@ public class TestJPL {
 		String mind1 = newMind(mindModule1);
 
 		Query query = new Query(new StringBuilder(mind1).append(":perceive(").append("P").append(",1)").toString());
-		System.out.println(Arrays.toString(query.allSolutions()));
+		Term t = query.allSolutions()[0].get("P").arg(1);
+		System.out.println(t);
+		System.out.println(t instanceof Compound);
 	}
 
 	protected static String newMind(String sourceModule) {

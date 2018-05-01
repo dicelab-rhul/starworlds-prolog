@@ -7,7 +7,7 @@ perceive(gridpercept(Tiles), Time). %:-
 	% do some things!
 
 % do something interesting...
-decide([component(actuator, message(hello, []))], Time):-
+decide([component(actuator, message(hello, [3]))], Time):-
 	0 is mod(Time, 2).
 	
 decide([component(actuator, move(direction(east)))], Time):-

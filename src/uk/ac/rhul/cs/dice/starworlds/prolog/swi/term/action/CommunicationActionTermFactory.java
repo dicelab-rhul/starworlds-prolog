@@ -1,4 +1,4 @@
-package uk.ac.rhul.cs.dice.starworlds.prolog.swi.term;
+package uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.action;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -9,15 +9,16 @@ import org.jpl7.Compound;
 import org.jpl7.Term;
 
 import uk.ac.rhul.cs.dice.starworlds.actions.environmental.CommunicationAction;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWITermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils;
 import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils.StringCollector;
 
-public class CommunicationActionTermFactory implements SWITermFactory {
+public class CommunicationActionTermFactory extends SWITermFactory {
 
 	public static final String COMMUNICATIONACTIONTERMNAME = "message";
 
 	@Override
-	public Term toTerm(Object arg) throws Exception {
+	public Term toTerm(Object arg) {
 		CommunicationAction action = (CommunicationAction) arg;
 		Set<String> recipients = action.getRecipientsIds();
 		if (!recipients.isEmpty()) {
@@ -29,7 +30,7 @@ public class CommunicationActionTermFactory implements SWITermFactory {
 	}
 
 	@Override
-	public Object fromTerm(Term term) throws Exception {
+	public Object fromTerm(Term term) {
 		if (term.arity() > 1) {
 			;
 			return new CommunicationAction(term.arg(1).toString(), SWIUtils.visitList(term.arg(2),
@@ -37,5 +38,20 @@ public class CommunicationActionTermFactory implements SWITermFactory {
 		} else {
 			return new CommunicationAction(term.arg(1).toString());
 		}
+	}
+
+	@Override
+	public Term toTerm(Object arg, Class<?>[] typeinfo) {
+		return toTerm(arg);
+	}
+
+	@Override
+	public Object fromTerm(Term term, Class<?>[] typeinfo) {
+		return fromTerm(term);
+	}
+
+	@Override
+	public Class<?> getObjectClass() {
+		return CommunicationAction.class;
 	}
 }

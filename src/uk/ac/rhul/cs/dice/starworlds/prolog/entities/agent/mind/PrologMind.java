@@ -8,6 +8,7 @@ import uk.ac.rhul.cs.dice.starworlds.perception.Perception;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.TermFactory;
 
 public abstract class PrologMind<T, K extends ComponentKey> extends AbstractMind<K> {
+	
 	private TermFactory<T> factory;
 
 	public PrologMind(TermFactory<T> factory) {

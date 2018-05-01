@@ -35,7 +35,7 @@ public class SWIUtils {
 	}
 
 	public static <V> V visitList(Term term, TermVisitor<V> vistor) {
-		if (term == null || term.name().equals("[]")) {
+		if (term == null || term.name().equals(EMPTYARRAY)) {
 			return null;
 		}
 		V v = vistor.visit(term.arg(1));

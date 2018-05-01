@@ -2,7 +2,11 @@ package uk.ac.rhul.cs.dice.starworlds.prolog.utils;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Field;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
+import java.lang.reflect.TypeVariable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -23,6 +27,37 @@ public class ReflectionUtils {
 			c = c.getSuperclass();
 		}
 		return list;
+	}
+
+	public static Class<?> getSingleGenericType(Field field) {
+		ParameterizedType type = (ParameterizedType) field.getGenericType();
+		return (Class<?>) type.getActualTypeArguments()[0];
+	}
+
+	public static Class<?>[] getDoubleGenericType(Field field) {
+		ParameterizedType type = (ParameterizedType) field.getGenericType();
+		Type[] types = type.getActualTypeArguments();
+		return new Class<?>[] { (Class<?>) types[0], (Class<?>) types[1] };
+	}
+
+	public static Class<?>[] getGenericTypes(Field field) {
+		if (field.getGenericType() instanceof ParameterizedType) {
+			ParameterizedType type = (ParameterizedType) field.getGenericType();
+			Type[] types = type.getActualTypeArguments();
+			Class<?>[] clss = new Class<?>[types.length];
+			for (int i = 0; i < types.length; i++) {
+				clss[i] = (Class<?>) types[i];
+			}
+			return clss;
+		} else {
+			TypeVariable<?> var = (TypeVariable<?>) field.getGenericType();
+			Type[] bounds = var.getBounds();
+			System.out.println(Arrays.toString(((ParameterizedType) bounds[0]).getActualTypeArguments()));
+			//TODO
+			
+			return null;
+		}
+
 	}
 
 	/**

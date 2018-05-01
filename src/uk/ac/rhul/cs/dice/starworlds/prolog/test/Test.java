@@ -1,119 +1,59 @@
 package uk.ac.rhul.cs.dice.starworlds.prolog.test;
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
-import org.jpl7.Atom;
-import org.jpl7.Compound;
 import org.jpl7.Term;
-import org.jpl7.Util;
 
 import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.GlobalTermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.SWITermFactory;
+import uk.ac.rhul.cs.dice.starworlds.prolog.swi.term.action.SenseActionTermFactory;
 import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
-import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils;
-import uk.ac.rhul.cs.dice.starworlds.prolog.utils.SWIUtils.TermCollector;
 
 public class Test {
 
 	private static GlobalTermFactory factory;
 
 	static {
-		// SWIGeneralTermFactory.initialise();
-		// factory = SWIGeneralTermFactory.getInstance();
+		factory = GlobalTermFactory.getInstance();
+		SenseActionTermFactory termfactory = new SenseActionTermFactory();
 	}
 
 	public static void main(String[] args) throws Exception {
-		System.out.println(Util.stringArrayToList(new String[] {}).name());
-		System.out.println(Util.stringArrayToList(new String[] { "" }).name());
-
-		List<Term> terms = new ArrayList<>();
-		terms.add(new Atom("a"));
-		terms.add(new Atom("b"));
-		terms.add(new Atom("c"));
-		Term term = SWIUtils.toList(terms);
-		List<Term> eterms = SWIUtils.visitList(term, new TermCollector<ArrayList<Term>>(new ArrayList<>()));
-		System.out.println(eterms);
+		System.out.println(Arrays.toString(new Test1<List<?>>().getClass().getDeclaredFields()));
+		Set<String> set = new HashSet<>();
+		set.add("a");
+		set.add("b");
+		Term t = factory.toTerm(new Test1<Set<?>>(set));
+		System.out.println(t);
 	}
 
-	public class TestP1 {
-		public class TestP2 {
-
-		}
+	private static Object test(SWITermFactory factory, Object obj) {
+		Term term = factory.toTerm(obj);
+		System.out.println(term);
+		return factory.fromTerm(term);
 	}
 
-	// @Termable(name = Test1.TERMNAME, factory = Test1Factory.class)
-	public static class Test1 {
-
-		public static final String TERMNAME = "test";
+	@Termable
+	public static class Test1<T extends Collection<?>> {
 
 		@Termable
-		private String t;
+		T arg;
 
 		public Test1() {
 		}
 
-		public Test1(String t) {
-			this.t = t;
+		public Test1(T arg) {
+			this.arg = arg;
 		}
 
 		@Override
 		public String toString() {
-			return this.getClass().getSimpleName() + " -> " + t;
-		}
-	}
-
-	public static class Test1Factory implements SWITermFactory {
-
-		public Test1Factory() {
+			return this.getClass().getSimpleName() + arg;
 		}
 
-		@Override
-		public Term toTerm(Object arg) throws Exception {
-			Test1 t = (Test1) arg;
-			return new Compound(Test1.TERMNAME, new Term[] { new Atom(t.t) });
-		}
-
-		@Override
-		public Test1 fromTerm(Term term) throws Exception {
-			return new Test1(term.arg(1).name());
-		}
-
-	}
-
-	// @Termable(name = "test")
-	public static class Test2 {
-		@Termable
-		private String message = "hello";
-		@Termable
-		private Integer index = 1;
-		@Termable
-		private E e = null;
-
-		@Override
-		public String toString() {
-			return this.getClass().getSimpleName() + "  " + message + "  " + index + "  " + e;
-		}
-	}
-
-	private static void test(Object arg) throws Exception {
-		System.out.println();
-		Term term = factory.toTerm(arg);
-		System.out.println(term);
-		Object obj = factory.fromTerm(term);
-		System.out.println(obj.getClass());
-	}
-
-	private static void test(Term term) throws Exception {
-		System.out.println();
-		System.out.println(term);
-		Object obj = factory.fromTerm(term);
-		System.out.println(obj);
-		System.out.println(factory.toTerm(obj));
-	}
-
-	// @Termable
-	private enum E {
-		A, B, C;
 	}
 }

@@ -14,7 +14,7 @@ public enum SimpleSWIComponentKey implements PrologComponentKey {
 
 	public static final String TERMNAME = "component";
 
-	public static class SimpleSWIComponentKeyFactory implements SWITermFactory {
+	public static class SimpleSWIComponentKeyFactory extends SWITermFactory {
 		@Override
 		public Term toTerm(Object arg) {
 			return new Compound(TERMNAME, new Term[] { new Atom(arg.toString().toLowerCase()) });
@@ -23,6 +23,21 @@ public enum SimpleSWIComponentKey implements PrologComponentKey {
 		@Override
 		public Object fromTerm(Term term) {
 			return SimpleSWIComponentKey.valueOf(term.arg(1).name().toUpperCase());
+		}
+
+		@Override
+		public Term toTerm(Object arg, Class<?>[] typeinfo) {
+			return toTerm(arg);
+		}
+
+		@Override
+		public Object fromTerm(Term term, Class<?>[] typeinfo) {
+			return fromTerm(term);
+		}
+
+		@Override
+		public Class<?> getObjectClass() {
+			return SimpleSWIComponentKey.class;
 		}
 	}
 

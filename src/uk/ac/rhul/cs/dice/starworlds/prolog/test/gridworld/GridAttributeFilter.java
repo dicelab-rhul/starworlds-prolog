@@ -5,10 +5,12 @@ import uk.ac.rhul.cs.dice.starworlds.entities.agent.AbstractAgent;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.Ambient;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.filter.Filter;
 import uk.ac.rhul.cs.dice.starworlds.environment.ambient.filter.FilterKey;
+import uk.ac.rhul.cs.dice.starworlds.prolog.term.Termable;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Coordinate;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Grid;
 import uk.ac.rhul.cs.dice.starworlds.prolog.test.gridworld.GridAmbient.Tile;
 
+@Termable(name = "gridfilter")
 public class GridAttributeFilter implements Filter<Grid, Tile[]> {
 
 	public static GridKey KEY = new GridKey();
